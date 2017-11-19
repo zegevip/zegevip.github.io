@@ -1,0 +1,91 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> PHP多进程初探 · Hexo</title><meta name="description" content="PHP多进程初探 - John Doe"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://yoursite.com/atom.xml" title="Hexo"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="http://weibo.com/sunchongsheng" target="_blank" class="nav-list-link">WEIBO</a></li><li class="nav-list-item"><a href="https://github.com/pinggod" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">PHP多进程初探</h1><div class="post-info">Nov 19, 2017</div><div class="post-content"><p>&#160; &#160; &#160; &#160;PHP的进程控制支持实现了Unix方式的进程创建, 程序执行, 信号处理以及进程的中断。 <strong><em>进程控制不能被应用在Web服务器环境，当其被用于Web服务环境时可能会带来意外的结果</em></strong>。<br>&#160; &#160; &#160; &#160;PCNTL现在使用了ticks作为信号处理的回调机制，ticks在速度上远远超过了之前的处理机制。 这个变化与“用户ticks”遵循了相同的语义。您可以使用declare() 语句在程序中指定允许发生回调的位置。这使得我们对异步事件处理的开销最小化。在编译PHP时 启用pcntl将始终承担这种开销，不论您的脚本中是否真正使用了pcntl。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Note: 此扩展在 Windows 平台上不可用。</span><br></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h3 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h3><p>&#160; &#160; &#160; &#160;我们都知道PHP是单进程执行的，PHP处理多并发主要是依赖服务器或PHP-FPM的多进程及它们进程的复用，但PHP实现多进程也意义重大，尤其是在后台Cli模式下处理大量数据或运行后台DEMON守护进程时，多进程的优势不用多说。<br>&#160; &#160; &#160; &#160;希望通过本文把PHP多进程的基础理解清楚。<strong>要实现PHP的多进程，需要两个扩展 pcntl和 posix</strong></p>
+<h3 id="子进程创建"><a href="#子进程创建" class="headerlink" title="子进程创建"></a>子进程创建</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int pcntl_fork ( void )</span><br></pre></td></tr></table></figure>
+<p><strong><em>成功时，在父进程执行线程内返回产生的子进程的PID，在子进程执行线程内返回0。失败时，在 父进程上下文返回-1，不会创建子进程，并且会引发一个PHP错误。</em></strong><br>&#160; &#160; &#160; &#160;pcntl_fork — 在当前进程当前位置产生分支（子进程）。译注：fork是创建了一个子进程，父进程和子进程 都从fork的位置开始向下继续执行，不同的是父进程执行过程中，得到的fork返回值为子进程 号，而子进程得到的是0。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (! function_exists(<span class="string">'pcntl_fork'</span>)) <span class="keyword">die</span>(<span class="string">'PCNTL functions not available on this PHP installation'</span>);</span><br><span class="line"></span><br><span class="line">$pid = pcntl_fork();</span><br><span class="line"><span class="comment">//父进程和子进程都会执行下面代码</span></span><br><span class="line"><span class="keyword">if</span> ($pid == <span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="comment">//错误处理：创建子进程失败时返回-1.</span></span><br><span class="line">     <span class="keyword">die</span>(<span class="string">'could not fork'</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> ($pid) &#123;</span><br><span class="line">     <span class="comment">//父进程会得到子进程号，所以这里是父进程执行的逻辑</span></span><br><span class="line">     pcntl_wait($pid, $status); <span class="comment">//等待子进程中断，防止子进程成为僵尸进程。</span></span><br><span class="line">     <span class="keyword">echo</span> <span class="string">"i am parent process, the parent pid is : "</span> . posix_getpid()  . <span class="string">", now the child process exited. \n"</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">     <span class="comment">//子进程得到的$pid为0, 所以这里是子进程执行的逻辑。</span></span><br><span class="line">     <span class="keyword">echo</span> <span class="string">"i am child process, the child pid is posix_getpid() : "</span> . posix_getpid() . <span class="string">"\n"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="子进程管理"><a href="#子进程管理" class="headerlink" title="子进程管理"></a>子进程管理</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool pcntl_signal ( int $signo , callback $handler [, bool $restart_syscalls = true ] )</span><br></pre></td></tr></table></figure>
+<p><strong><em>函数pcntl_signal()为signo指定的信号安装一个新 的信号处理器。</em></strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool pcntl_signal_dispatch ( void )</span><br></pre></td></tr></table></figure></p>
+<p><strong><em>函数pcntl_signal_dispatch()调用每个等待信号通过pcntl_signal() 安装的处理器。</em></strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool posix_kill ( int $pid , int $sig )</span><br></pre></td></tr></table></figure></p>
+<p><strong><em>它通过向子进程发送一个信号来操作子进程，在需要要时可以选择给子进程发送进程终止信号来终止子进程</em></strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int pcntl_waitpid ( int $pid , int &amp;$status [, int $options = 0 ] )</span><br></pre></td></tr></table></figure></p>
+<p><strong><em>挂起当前进程的执行直到参数pid指定的进程号的进程退出， 或接收到一个信号要求中断当前进程或调用一个信号处理函数。</em></strong><br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line"></span><br><span class="line">pcntl_signal(SIGTERM,  function($signo) &#123;</span><br><span class="line">    echo <span class="string">"This signal is called. [$signo] \n"</span>;</span><br><span class="line">    Status::$state = <span class="number">-1</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Status</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> $state = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$pid = pcntl_fork();</span><br><span class="line"><span class="keyword">if</span> ($pid == <span class="number">-1</span>) &#123;</span><br><span class="line">    die('could not fork');</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>($pid) &#123;</span><br><span class="line">    <span class="comment">// parent</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $m = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// Dispatching...</span></span><br><span class="line">        pcntl_signal_dispatch();</span><br><span class="line">        <span class="keyword">if</span>(Status::$state == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="comment">// Do something and end loop.</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>($j = <span class="number">0</span>; $j &lt; <span class="number">2</span>; $j++) &#123;</span><br><span class="line">			echo <span class="string">"the num of m from child process is : "</span> . $m . <span class="string">" and the pid is : "</span> . posix_getpid() . <span class="string">"\n"</span> ;</span><br><span class="line">            echo <span class="string">"........ \n"</span>;</span><br><span class="line"> 			$m++;</span><br><span class="line">            sleep(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    echo <span class="string">"Finish \n"</span>;</span><br><span class="line">    <span class="built_in">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$n = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">    $res = pcntl_waitpid($pid, $status, WNOHANG);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the child process ends, then end the main process.</span></span><br><span class="line">    <span class="keyword">if</span>(<span class="number">-1</span> == $res || $res &gt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    echo <span class="string">"the num of n from parent process is : "</span> . $n . <span class="string">" and the pid is : "</span> . posix_getpid() . <span class="string">"\n"</span>;</span><br><span class="line">    <span class="comment">// Send a signal after 5 seconds..</span></span><br><span class="line">    <span class="keyword">if</span>($n == <span class="number">5</span>)</span><br><span class="line">        posix_kill($pid, SIGTERM);</span><br><span class="line"></span><br><span class="line">    $n++;</span><br><span class="line"></span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><a href="http://php.net/manual/zh/function.pcntl-signal.php#115984" target="_blank" rel="noopener">此段代码出自PHPDOC</a><br>程序输出：</p>
+<pre><code>the num of n from parent process is : 0 and the pid is : 81
+the num of m from child process is : 0 and the pid is : 82
+........
+the num of n from parent process is : 1 and the pid is : 81
+the num of m from child process is : 1 and the pid is : 82
+........
+the num of n from parent process is : 2 and the pid is : 81
+the num of m from child process is : 2 and the pid is : 82
+........
+the num of n from parent process is : 3 and the pid is : 81
+the num of m from child process is : 3 and the pid is : 82
+........
+the num of n from parent process is : 4 and the pid is : 81
+the num of m from child process is : 4 and the pid is : 82
+........
+the num of n from parent process is : 5 and the pid is : 81
+the num of m from child process is : 5 and the pid is : 82
+........
+the num of n from parent process is : 6 and the pid is : 81
+This signal is called. [15]
+Finish
+</code></pre><h3 id="一个例子"><a href="#一个例子" class="headerlink" title="一个例子"></a>一个例子</h3><p>PHP CLI模式小的多进程应用 <a href="http://www.laruence.com/2009/06/11/930.html" target="_blank" rel="noopener">代码出处</a></p>
+<pre><code class="php"><span class="meta">&lt;?php</span>
+
+<span class="keyword">if</span>(substr(php_sapi_name(), <span class="number">0</span>, <span class="number">3</span>) !== <span class="string">"cli"</span>) {
+    <span class="keyword">die</span>(<span class="string">"This Program can only be run in CLI mode"</span>);
+}
+
+set_time_limit(<span class="number">0</span>);
+
+$pid = posix_getpid();
+$user = posix_getlogin();
+
+<span class="keyword">echo</span> <span class="string">&lt;&lt;&lt;EOD</span>
+<span class="string">USAGE: [command | expression]</span>
+<span class="string">input php code to excute by fock a new process</span>
+<span class="string">input quit to exit</span>
+<span class="string">EOD;</span>
+
+<span class="keyword">while</span>(<span class="keyword">true</span>) {
+
+    $prompt = <span class="string">"\n{$user}$"</span>;
+    $input = readline($prompt);
+
+    readline_add_history($input);
+    <span class="keyword">if</span>($input == <span class="string">"quit"</span>) {
+        <span class="keyword">break</span>;
+    }
+    process_execute($input . <span class="string">";"</span>);
+}
+<span class="keyword">exit</span>(<span class="number">0</span>);
+
+<span class="function"><span class="keyword">function</span> <span class="title">process_execute</span><span class="params">($input)</span> </span>{
+    $pid = pcntl_fork();
+    <span class="keyword">if</span>($pid == <span class="number">0</span>) {
+        $pid = posix_getpid();
+        <span class="keyword">echo</span> <span class="string">"* Process {$pid} was created, and Executed:\n\n"</span>;
+        <span class="keyword">eval</span>($input);
+        <span class="keyword">exit</span>;
+    } <span class="keyword">else</span> {
+        $pid = pcntl_wait($status, WUNTRACED);
+        <span class="keyword">if</span>(pcntl_wifexited($status)) {
+            <span class="keyword">echo</span> <span class="string">"\n\n* Sub process: {$pid} exited with {$status}.\n"</span>;
+        }
+    }
+}
+</code></pre>
+<p>上面这个程序使用PHP提供的POSIX和Pcntl系列函数, 实现了一个PHP命令解析器, 主进程负责接受用户输入, 然后fork子进程执行, 并负责回显子进程的结束状态.</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>&#160; &#160; &#160; &#160;PHP下的多进程主要是通过PCNTL和POSIX实现的，虽然官方不建议在WEB环境下使用多进程，但是在CLI模式下进行批处理以及守护进程的情况下，多进程还是很有用的。<br>&#160; &#160; &#160; &#160;通过上面的例子可以看到多进程有以下优点：  </p>
+<ol>
+<li>使用多进程, 子进程结束以后, 内核会负责回收资源</li>
+<li>使用多进程,子进程异常退出不会导致整个进程Thread退出. 父进程还有机会重建流程.</li>
+<li>一个常驻主进程, 只负责任务分发, 逻辑更清楚.</li>
+</ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ol>
+<li><a href="http://www.cnblogs.com/zhenbianshu/p/5676822.html" target="_blank" rel="noopener">初探PHP多进程</a></li>
+<li><a href="http://www.laruence.com/2009/06/11/930.html" target="_blank" rel="noopener">PHP CLI模式下的多进程应用</a></li>
+<li><a href="http://www.php-internals.com/book/?p=chapt08/08-02-thread-process-and-concurrent" target="_blank" rel="noopener">进程，线程和并发</a></li>
+</ol>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/11/19/index/" class="next">下一篇</a></div><div class="copyright"><p>© 2015 - 2017 <a href="http://yoursite.com">John Doe</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script></body></html>
