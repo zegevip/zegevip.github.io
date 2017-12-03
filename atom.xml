@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2017-11-21T14:28:52.000Z</updated>
+  <updated>2017-12-03T01:20:34.000Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,37 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>OSTEP读书笔记-Chapter4:抽象 进程</title>
+    <link href="http://yoursite.com/2017/12/02/OSTEP%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-Chapter4-%E6%8A%BD%E8%B1%A1-%E8%BF%9B%E7%A8%8B/"/>
+    <id>http://yoursite.com/2017/12/02/OSTEP读书笔记-Chapter4-抽象-进程/</id>
+    <published>2017-12-02T14:06:00.000Z</published>
+    <updated>2017-12-03T01:20:34.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>进程就是一个运行中的程序。<br>进程的组成：<strong>machine state</strong>: what a program can read or update when it is running  </p><ul><li>memory： that the process can address (called its <strong>address space</strong>) is part of the process</li><li>registers：<ul><li><strong>program counter (PC)</strong> | <strong>instruction pointer (IP)</strong>:tells which instruction of the program is currently being executed</li><li><strong>stack pointer</strong> and associated <strong>frame pointer</strong>:manage the stack for function parameters, local variables, and return addresses</li></ul></li><li>I/O</li></ul><a id="more"></a><h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a>进程创建</h3><p><img src="/images/ostep/load-program-to-process.png" alt=""></p><ul><li>load its code and any static data into memory, into the <strong>address space</strong> of the process  </li><li>allocate memory for the program’s <strong>run-time stack</strong> (or just stack), <strong><em>C programs use the stack for local variables, function parameters, and return addresses</em></strong></li><li>allocate memory for the program’s <strong>heap</strong>,<strong><em>heap is used for explicitly requested dynamically-allocated data (malloc,free)</em></strong></li><li>other initialization some as I/O </li><li>start the program running at the entry point, namely main()</li></ul><h3 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h3><p><img src="/images/ostep/process-state.png" alt=""></p><ul><li>Running</li><li>Ready</li><li>Blocked</li></ul><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;进程就是一个运行中的程序。&lt;br&gt;进程的组成：&lt;strong&gt;machine state&lt;/strong&gt;: what a program can read or update when it is running  &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;memory： that the process can address (called its &lt;strong&gt;address space&lt;/strong&gt;) is part of the process&lt;/li&gt;
+&lt;li&gt;registers：&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;program counter (PC)&lt;/strong&gt; | &lt;strong&gt;instruction pointer (IP)&lt;/strong&gt;:tells which instruction of the program is currently being executed&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;stack pointer&lt;/strong&gt; and associated &lt;strong&gt;frame pointer&lt;/strong&gt;:manage the stack for function parameters, local variables, and return addresses&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;I/O&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="OSTEP" scheme="http://yoursite.com/categories/OSTEP/"/>
+    
+    
+      <category term="OSTEP" scheme="http://yoursite.com/tags/OSTEP/"/>
+    
+  </entry>
   
   <entry>
     <title>PHP进程管理PHP-FPM</title>

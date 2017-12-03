@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> OSTEP读书笔记-Chapter4:抽象 进程 · Hexo</title><meta name="description" content="OSTEP读书笔记-Chapter4:抽象 进程 - John Doe"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://yoursite.com/atom.xml" title="Hexo"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="http://weibo.com/sunchongsheng" target="_blank" class="nav-list-link">WEIBO</a></li><li class="nav-list-item"><a href="https://github.com/pinggod" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">OSTEP读书笔记-Chapter4:抽象 进程</h1><div class="post-info">Dec 2, 2017</div><div class="post-content"><p>进程就是一个运行中的程序。<br>进程的组成：<strong>machine state</strong>: what a program can read or update when it is running  </p>
+<ul>
+<li>memory： that the process can address (called its <strong>address space</strong>) is part of the process</li>
+<li>registers：<ul>
+<li><strong>program counter (PC)</strong> | <strong>instruction pointer (IP)</strong>:tells which instruction of the program is currently being executed</li>
+<li><strong>stack pointer</strong> and associated <strong>frame pointer</strong>:manage the stack for function parameters, local variables, and return addresses</li>
+</ul>
+</li>
+<li>I/O</li>
+</ul>
+<a id="more"></a>
+<h3 id="进程创建"><a href="#进程创建" class="headerlink" title="进程创建"></a>进程创建</h3><p><img src="/images/ostep/load-program-to-process.png" alt=""></p>
+<ul>
+<li>load its code and any static data into memory, into the <strong>address space</strong> of the process  </li>
+<li>allocate memory for the program’s <strong>run-time stack</strong> (or just stack), <strong><em>C programs use the stack for local variables, function parameters, and return addresses</em></strong></li>
+<li>allocate memory for the program’s <strong>heap</strong>,<strong><em>heap is used for explicitly requested dynamically-allocated data (malloc,free)</em></strong></li>
+<li>other initialization some as I/O </li>
+<li>start the program running at the entry point, namely main()</li>
+</ul>
+<h3 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h3><p><img src="/images/ostep/process-state.png" alt=""></p>
+<ul>
+<li>Running</li>
+<li>Ready</li>
+<li>Blocked</li>
+</ul>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3></div></article></div></main><footer><div class="paginator"><a href="/2017/11/20/PHP进程管理/" class="next">NEXT</a></div><div class="copyright"><p>© 2015 - 2017 <a href="http://yoursite.com">John Doe</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script></body></html>
