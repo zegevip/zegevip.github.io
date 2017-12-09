@@ -1,0 +1,62 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> OSTEP读书笔记-Chapter6: Limited Direct Execution · Hexo</title><meta name="description" content="OSTEP读书笔记-Chapter6: Limited Direct Execution - John Doe"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://yoursite.com/atom.xml" title="Hexo"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="http://weibo.com/sunchongsheng" target="_blank" class="nav-list-link">WEIBO</a></li><li class="nav-list-item"><a href="https://github.com/pinggod" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">OSTEP读书笔记-Chapter6: Limited Direct Execution</h1><div class="post-info">Dec 9, 2017</div><div class="post-content"><p>通过时间共享的技术，操作系统可以同时运行很多进程，对于单个进程来说，CPU就像是它们独占的一样。但是实际上，如果操作系统不对运行中的程序做限制，那么操作系统对CPU就会丧失控制权而沦为一个“lib”，那就不是我们渴望得到的操作系统了。<br>操作系统到底是怎么管理这些进程的呢？特别是，操作系统是怎么尽可能高效地让尽量多的进程运行，而又不丧失CPU的控制权的呢？</p>
+<a id="more"></a>
+<h3 id="Direct-Execution-without-limits"><a href="#Direct-Execution-without-limits" class="headerlink" title="Direct Execution (without limits!)"></a>Direct Execution (without limits!)</h3><p>Without limits on running programs,the OS wouldn’t be in control of anything and thus would be “just a library”</p>
+<h3 id="Restricted-Operation"><a href="#Restricted-Operation" class="headerlink" title="Restricted Operation"></a>Restricted Operation</h3><p><strong><em>Solution</em></strong>:Using protected control transfer (processor has to support it)</p>
+<ul>
+<li><strong><em>User mode</em></strong>: Applications do not have full access to hardware resources</li>
+<li><strong><em>Kernel mode</em></strong>: The OS has access to the full resources of the machine</li>
+</ul>
+<p><strong><em>System Call</em></strong> </p>
+<ul>
+<li>Allow the kernel to carefully expose certain key pieces of functionality to user program, such as:<ul>
+<li>Accessing the file system</li>
+<li>Creating and destroying processes</li>
+<li>Creating and destroying processes</li>
+<li>Allocating more memory</li>
+</ul>
+</li>
+<li><strong><em>Trap</em></strong> instruction<ul>
+<li>Jump into the kernel</li>
+<li>Raise (the processor) privilege level to kernel mode</li>
+</ul>
+</li>
+<li><strong><em>Return-from-trap</em></strong> instruction<ul>
+<li>Return into the calling user program</li>
+<li>Reduce (the processor) privilege level back to user mode<br><img src="/images/ostep/limited-direct-execution-protocol.png" alt=""></li>
+</ul>
+</li>
+</ul>
+<h3 id="Switching-Between-Processes"><a href="#Switching-Between-Processes" class="headerlink" title="Switching Between Processes"></a>Switching Between Processes</h3><p>How can the OS regain control of the CPU so that it can switch between processes?</p>
+<ul>
+<li>A cooperative Approach: Wait for system calls</li>
+<li>A Non-Cooperative Approach: The OS takes control  </li>
+</ul>
+<p><strong><em>Wait for system calls</em></strong><br>Processes periodically give up the CPU by making system calls such as yield</p>
+<ul>
+<li>The OS decides to run some other task.</li>
+<li>Application also transfer control to the OS when they do something illegal    </li>
+</ul>
+<p><strong><em>The OS takes control</em></strong></p>
+<ul>
+<li><strong>A timer interrupt</strong><ul>
+<li>During the boot sequence, the OS start the timer (hardware)</li>
+<li>The timer raise an interrupt every so many milliseconds. (hardware)</li>
+<li>When the interrupt is raised:<br> 1 The currently running process is halted<br>2 Save enough of the state of the program<br>3 A pre-configured interrupt handler in the OS runs</li>
+</ul>
+</li>
+</ul>
+<p><strong><em>Scheduler</em></strong></p>
+<ul>
+<li>Scheduler makes a decision Whether to continue running the current process, or switch to a different<br>one</li>
+<li>If the decision is made to switch, the OS executes context switch  </li>
+</ul>
+<p><strong><em>Context Switch</em></strong></p>
+<ul>
+<li>A low-level piece of assembly code <ul>
+<li>Save a few register values for the current process onto its kernel stack (PC,General purpose registers,kernel stack pointer)</li>
+<li>Restore a few for the soon-to-be-executing process from its kernel stack</li>
+<li>Switch to the kernel stack for the soon-to-be-executing process<br><img src="/images/ostep/limited-direct-execution-protocol-timerinterrupt.png" alt=""></li>
+</ul>
+</li>
+</ul>
+</div></article></div></main><footer><div class="paginator"><a href="/2017/12/02/OSTEP读书笔记-Chapter4-抽象-进程/" class="next">NEXT</a></div><div class="copyright"><p>© 2015 - 2017 <a href="http://yoursite.com">John Doe</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));ga('create',"UA-65933410-1",'auto');ga('send','pageview');</script></body></html>
